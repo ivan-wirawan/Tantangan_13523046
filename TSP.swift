@@ -2,7 +2,6 @@ import Foundation
 
 let INF = Int.max / 2
 
-// Fungsi membaca integer dari input
 func readInt() -> Int {
     guard let line = readLine(), let val = Int(line.trimmingCharacters(in: .whitespaces)) else {
         fatalError("Input tidak valid")
@@ -10,7 +9,6 @@ func readInt() -> Int {
     return val
 }
 
-// Fungsi membaca array of Int dari input
 func readIntArray() -> [Int] {
     guard let line = readLine() else {
         fatalError("Input tidak valid")
@@ -18,7 +16,6 @@ func readIntArray() -> [Int] {
     return line.split(separator: " ").compactMap { Int($0) }
 }
 
-// Fungsi untuk mencetak header program
 func printHeader() {
     print("=" * 60)
     print("🚀 TRAVELING SALESMAN PROBLEM (TSP) SOLVER")
@@ -26,7 +23,6 @@ func printHeader() {
     print("=" * 60)
 }
 
-// Fungsi untuk mencetak matriks dengan format yang rapi
 func printMatrix(_ matrix: [[Int]], _ n: Int) {
     print("\n📋 Matriks Ketetanggaan:")
     print("   ", terminator: "")
@@ -49,7 +45,6 @@ func printMatrix(_ matrix: [[Int]], _ n: Int) {
     print("")
 }
 
-// Fungsi untuk mencetak hasil dengan format yang bagus
 func printResult(_ result: (cost: Int, path: [Int])) {
     print("🎯 HASIL PERHITUNGAN TSP")
     print("=" * 40)
@@ -68,76 +63,85 @@ func printResult(_ result: (cost: Int, path: [Int])) {
     print("=" * 40)
 }
 
-// Fungsi TSP menggunakan DP + Memoization
 func tsp(distance: [[Int]]) -> (cost: Int, path: [Int]) {
     let n = distance.count
     var memo = [String: Int]()
     var parent = [String: Int]()
-
-    func dp(_ current: Int, _ visited: Int) -> Int {
-        if visited == (1 << n) - 1 {
-            return distance[current][0] // kembali ke kota asal
+    
+    func f(_ i: Int, _ S: Set<Int>) -> Int {
+        if S.isEmpty {
+            return distance[i-1][0]
         }
-
-        let key = "\(current),\(visited)"
+        
+        let key = "\(i),\(S.sorted())"
         if let val = memo[key] {
             return val
         }
-
+        
         var minCost = INF
-        for next in 0..<n where visited & (1 << next) == 0 {
-            let cost = distance[current][next] + dp(next, visited | (1 << next))
+        var bestNext = -1
+        
+        for j in S {
+            let newS = S.subtracting([j])
+            let cost = distance[i-1][j-1] + f(j, newS)
             if cost < minCost {
                 minCost = cost
-                parent[key] = next
+                bestNext = j
             }
         }
-
+        
         memo[key] = minCost
+        parent[key] = bestNext
         return minCost
     }
-
-    print("🔄 Memproses perhitungan TSP...")
-    let minTotalCost = dp(0, 1)
-
-    // Rekonstruksi jalur
-    var path = [0]
-    var visited = 1
-    var current = 0
-    while path.count < n {
-        let key = "\(current),\(visited)"
+    
+    print("🔄 Memproses perhitungan TSP menggunakan f(i, S)...")
+    
+    var minTotalCost = INF
+    var firstNext = -1
+    
+    for k in 2...n {
+        let S = Set((2...n).filter { $0 != k })
+        let cost = distance[0][k-1] + f(k, S)
+        if cost < minTotalCost {
+            minTotalCost = cost
+            firstNext = k
+        }
+    }
+    
+    var path = [1]
+    var current = firstNext
+    var remaining = Set((2...n).filter { $0 != firstNext })
+    
+    path.append(current)
+    
+    while !remaining.isEmpty {
+        let key = "\(current),\(remaining.sorted())"
         guard let next = parent[key] else { break }
         path.append(next)
-        visited |= (1 << next)
+        remaining.remove(next)
         current = next
     }
-    path.append(0) // kembali ke awal
-
-    // Konversi ke indeks berbasis 1 untuk output
-    let displayPath = path.map { $0 + 1 }
     
-    return (minTotalCost, displayPath)
+    path.append(1)
+    
+    return (minTotalCost, path)
 }
 
-// Extension untuk operator perkalian string (untuk garis pembatas)
 extension String {
     static func * (string: String, count: Int) -> String {
         return String(repeating: string, count: count)
     }
 }
 
-// --- PROGRAM UTAMA ---
-// --- PROGRAM UTAMA ---
 func main() {
     printHeader()
     print("🔢 Masukkan jumlah kota (minimal 2):")
     print("   Contoh: 4")
     print("   Input jumlah kota: ", terminator: "")
     
-    // Input jumlah kota
     let n = readInt()
     
-    // Validasi jumlah kota
     if n < 2 {
         print("❌ Error: Minimal harus ada 2 kota!")
         return
@@ -147,7 +151,6 @@ func main() {
         print("⚠️  Peringatan: Jumlah kota > 20 dapat membutuhkan waktu komputasi yang lama.")
     }
     
-    // Pesan untuk input matriks
     print("\n📊 Masukkan matriks ketetanggaan (\(n)×\(n)):")
     print("   • Masukkan \(n) baris")
     print("   • Setiap baris berisi \(n) angka dipisahkan spasi")
@@ -175,7 +178,6 @@ func main() {
     
     var distance = [[Int]]()
     
-    // Input matriks ketetanggaan
     for i in 0..<n {
         guard let line = readLine() else {
             print("❌ Error: Input tidak valid pada baris \(i + 1)")
@@ -184,13 +186,11 @@ func main() {
         
         let row = line.split(separator: " ").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
         
-        // Verifikasi jumlah kolom
         if row.count != n {
             print("❌ Error: Baris \(i + 1) harus memiliki \(n) elemen, tetapi diberikan \(row.count)")
             return
         }
         
-        // Verifikasi nilai non-negatif
         for j in 0..<n {
             if row[j] < 0 {
                 print("❌ Error: Jarak tidak boleh negatif! Ditemukan \(row[j]) pada posisi (\(i + 1), \(j + 1))")
@@ -201,7 +201,6 @@ func main() {
         distance.append(row)
     }
     
-    // Verifikasi matriks
     print("\n🔍 Memverifikasi matriks...")
     var hasWarning = false
     
@@ -212,7 +211,6 @@ func main() {
         }
     }
     
-    // Cek simetri (opsional)
     var isSymmetric = true
     for i in 0..<n {
         for j in 0..<n {
@@ -232,16 +230,13 @@ func main() {
         print("✅ Matriks valid!")
     }
     
-    // Tampilkan matriks
     printMatrix(distance, n)
     
-    // Jalankan TSP
     let startTime = Date()
     let result = tsp(distance: distance)
     let endTime = Date()
     let executionTime = endTime.timeIntervalSince(startTime)
     
-    // Tampilkan hasil
     print("✅ Perhitungan selesai!")
     printResult(result)
     

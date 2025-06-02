@@ -17,11 +17,10 @@
 
 
 ## 🧮 Algoritma
-Program ini menyelesaikan masalah Traveling Salesman Problem (TSP) secara optimal menggunakan Dynamic Programming. Algoritma ini menghindari perhitungan ulang dengan menyimpan hasil submasalah dalam dictionary memo, dan melacak jalur optimal menggunakan dictionary parent.
+Program ini mengimplementasikan **Traveling Salesman Problem (TSP)** menggunakan **Dynamic Programming** dengan pendekatan fungsi rekursif `f(i, S)` yang menghitung biaya minimum untuk mencapai kota asal dari kota `i` dengan mengunjungi semua kota dalam himpunan `S`. Algoritma menggunakan **memoization** untuk menghindari perhitungan berulang dengan menyimpan hasil submasalah dalam dictionary `memo`, dan melacak jalur optimal menggunakan dictionary `parent`. 
 
-Fungsi utama dp(current, visited) menghitung biaya minimum untuk menyelesaikan perjalanan dari kota current dengan status kunjungan visited, yang direpresentasikan dalam bentuk bitmask. Jika semua kota telah dikunjungi, fungsi mengembalikan jarak ke kota asal. Jika belum, algoritma mencoba semua kota yang belum dikunjungi, menghitung biaya total secara rekursif, dan memilih rute termurah.
+Base case terjadi ketika `S` kosong, dimana fungsi mengembalikan jarak langsung ke kota asal. Untuk kasus rekursif, algoritma mencoba semua kota dalam himpunan `S`, menghitung biaya total secara rekursif dengan formula `f(i, S) = min{c{i,j} + f(j, S-{j})}`, dan memilih rute dengan biaya minimum. Setelah perhitungan selesai, algoritma merekonstruksi jalur optimal dari data `parent` yang tersimpan. Kompleksitas waktu algoritma adalah **O(n² × 2ⁿ)** dan kompleksitas ruang **O(n × 2ⁿ)**, yang jauh lebih efisien dibandingkan pendekatan brute force dengan kompleksitas **O(n!)**.
 
-Setelah seluruh biaya dihitung, algoritma merekonstruksi jalur optimal dari data parent. Kompleksitas waktunya adalah O(n² × 2ⁿ), dan ruang O(n × 2ⁿ).
 ### Cara Kerja
 
 
@@ -72,35 +71,20 @@ Program mengharapkan input dalam format berikut:
 **Input:**
 ```
 4
-0 10 15 20
-5 0 9 10
-6 13 0 12
-8 8 9 0
+0 7 12 16
+4 0 8 11
+9 15 0 13
+6 5 10 0
 ```
 
 **Output:**
 ```
-============================================================
-🚀 TRAVELING SALESMAN PROBLEM (TSP) SOLVER
-📊 Menggunakan Dynamic Programming
-============================================================
-
-📋 Matriks Ketetanggaan:
-      1   2   3   4
- 1    0  10  15  20
- 2    5   0   9  10
- 3    6  13   0  12
- 4    8   8   9   0
-
-🔄 Memproses perhitungan TSP...
-✅ Perhitungan selesai!
-
 🎯 HASIL PERHITUNGAN TSP
 ========================================
 📍 Jalur Optimal:
    1 → 2 → 3 → 4 → 1
 
-💰 Total Biaya Minimum: 35
+💰 Total Biaya Minimum: 34
 
 📊 Detail Perjalanan:
    Kota 1 → Kota 2
@@ -109,7 +93,7 @@ Program mengharapkan input dalam format berikut:
    Kota 4 → Kota 1
 ========================================
 
-⏱️  Waktu eksekusi: 0.0012 detik
+⏱️  Waktu eksekusi: 0.0011 detik
 ```
 
 ### Contoh 2: Graf 3 Kota Simetris
@@ -117,15 +101,25 @@ Program mengharapkan input dalam format berikut:
 **Input:**
 ```
 3
-0 10 15
-10 0 20
-15 20 0
+0 12 18
+12 0 25
+18 25 0
 ```
 
 **Output:**
 ```
-📍 Jalur Optimal: 1 → 2 → 3 → 1
-💰 Total Biaya Minimum: 45
+ HASIL PERHITUNGAN TSP
+========================================
+📍 Jalur Optimal:
+   1 → 2 → 3 → 1
+
+💰 Total Biaya Minimum: 55
+
+📊 Detail Perjalanan:
+   Kota 1 → Kota 2
+   Kota 2 → Kota 3
+   Kota 3 → Kota 1
+========================================
 ```
 
 ## ⚡ Kompleksitas
@@ -145,23 +139,28 @@ Tantangan_13523046/
 
 ### Komponen Kode
 
-**Fungsi Utama:**
-- **`tsp(distance:)`** - Implementasi algoritma TSP dengan DP
-- **`dp(_:_:)`** - Fungsi rekursif untuk Dynamic Programming
-- **`printMatrix(_:_:)`** - Menampilkan matriks ketetanggaan
-- **`printResult(_:)`** - Menampilkan hasil perhitungan
-- **`printHeader()`** - Header program
+**Fungsi Core Algorithm:**
+- **`tsp(distance:)`** - Implementasi algoritma TSP dengan Dynamic Programming menggunakan formula `f(i, S)`
+- **`f(_:_:)`** - Fungsi rekursif internal untuk menghitung biaya minimum dari kota `i` dengan mengunjungi himpunan `S`
 
-**Fungsi Utilitas:**
-- **`readInt()`** - Membaca input integer
-- **`readIntArray()`** - Membaca array integer
-- **`main()`** - Fungsi utama program
+**Fungsi Input/Output:**
+- **`readInt()`** - Membaca input integer dengan validasi error handling
+- **`readIntArray()`** - Membaca array integer dari input (tidak digunakan dalam implementasi final)
+- **`printHeader()`** - Menampilkan header program dengan format visual yang menarik
+- **`printMatrix(_:_:)`** - Menampilkan matriks ketetanggaan dalam format tabel yang mudah dibaca
+- **`printResult(_:)`** - Menampilkan hasil TSP termasuk jalur optimal dan total biaya
+
+**Fungsi Utama:**
+- **`main()`** - Fungsi utama yang mengatur alur program dari input hingga output, termasuk validasi input dan pengukuran waktu eksekusi
 
 **Data Structures:**
-- **`memo`** - Dictionary untuk memoization
-- **`parent`** - Dictionary untuk tracking path
-- **`distance`** - Matriks ketetanggaan
+- **`memo`** - Dictionary dengan key `String` untuk memoization hasil perhitungan `f(i, S)`
+- **`parent`** - Dictionary untuk menyimpan pilihan optimal guna rekonstruksi jalur
+- **`distance`** - Matriks ketetanggaan 2D yang menyimpan jarak antar kota
 
+**Utility:**
+- **`String * Int`** - Extension operator untuk membuat garis pembatas dengan perulangan string
+- **`INF`** - Konstanta untuk nilai tak hingga (Int.max / 2) untuk mencegah overflow
 ## 📚 Referensi
 1. **Program Dinamis (Bagian 1)** 
     - URL : https://informatika.stei.itb.ac.id/~rinaldi.munir/Stmik/2024-2025/25-Program-Dinamis-(2025)-Bagian1.pdf
